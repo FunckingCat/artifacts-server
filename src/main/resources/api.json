@@ -2987,19 +2987,6 @@
             "title": "Cooldown",
             "description": "Cooldown in seconds."
           },
-          "cooldown_expiration": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cooldown Expiration",
-            "description": "Datetime Cooldown expiration."
-          },
           "weapon_slot": {
             "type": "string",
             "title": "Weapon Slot",

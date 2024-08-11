@@ -1,37 +1,59 @@
 package ru.davidzh.artifactsproject.config
 
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import org.openapitools.client.apis.CharactersApi
 import org.openapitools.client.apis.MyCharactersApi
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 @Configuration
-class ApiConfig {
+class ApiConfig(
+    @Value("\${api.key}") private val apiKey: String,
+) {
 
     companion object {
-        const val API_KEY: String = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ikt1a296aCIsInBhc3N3b3JkX2NoYW5nZWQiOiIifQ.B1g6XhZwgTO0QZ4Yc491rWp8ay-OG8EfjeF14Q3akd8"
+        const val BASE_URL = "https://api.artifactsmmo.com/"
     }
 
     @Bean
-    fun getCharacterService(): MyCharactersApi {
+    fun getMyCharactersApi(): MyCharactersApi {
+        return buildApi(MyCharactersApi::class.java)
+    }
+
+    @Bean
+    fun getCharactersApi(): CharactersApi {
+        return buildApi(CharactersApi::class.java)
+    }
+
+    private fun <T> buildApi(clazz: Class<T>): T {
+
+        val interceptor : HttpLoggingInterceptor = HttpLoggingInterceptor()
+            .setLevel(HttpLoggingInterceptor.Level.BASIC)
+            .apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+
         val httpClient = OkHttpClient.Builder()
-                .addInterceptor { chain ->
-                    val original = chain.request()
-                    val builder = original.newBuilder()
-                            .header("Authorization", API_KEY)
-                    val request = builder.build()
-                    chain.proceed(request)
-                }
-                .build()
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val builder = original.newBuilder()
+                    .header("Authorization", apiKey)
+                val request = builder.build()
+                chain.proceed(request)
+            }
+            .addInterceptor(interceptor)
+            .build()
 
         val retrofit = Retrofit.Builder()
-                .baseUrl("https://api.github.com")
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(httpClient)
-                .build()
-        return retrofit.create(MyCharactersApi::class.java)
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(httpClient)
+            .build()
+        return retrofit.create(clazz)
     }
 
 }

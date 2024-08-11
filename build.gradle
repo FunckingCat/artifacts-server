@@ -1,0 +1,86 @@
+plugins {
+    id 'org.springframework.boot' version '3.3.2'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.24'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.9.24'
+    id("org.openapi.generator") version "7.7.0"
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.7.21'
+}
+
+group = 'ru.davidzh'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    def nexusUsername = System.getProperty("gradle.wrapperUser")
+    def nexusPassword = System.getProperty("gradle.wrapperPassword")
+    def protectedRepo = { repoUrl ->
+        maven {
+            url repoUrl
+            credentials {
+                username nexusUsername
+                password nexusPassword
+            }
+        }
+    }
+
+    protectedRepo("https://nexus-ci.delta.sbrf.ru/repository/public/")
+    protectedRepo("https://nexus-ci.delta.sbrf.ru/repository/maven-lib-int/")
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava3:2.11.0'
+    implementation 'com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0'
+    implementation("com.squareup.retrofit2:converter-scalars:2.11.0")
+
+    implementation "org.openapitools:openapi-generator-gradle-plugin:7.7.0"
+}
+
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        freeCompilerArgs.addAll '-Xjsr305=strict'
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+openApiGenerate {
+    generatorName = "kotlin"
+    inputSpec = "${projectDir.path}/src/main/resources/api.json"
+    additionalProperties = [
+            "library": "jvm-retrofit2",
+            "serializationLibrary": "gson",
+            "useCoroutines": "true"
+    ]
+}
+
+sourceSets.main.java.srcDir "${projectDir.path}/build/generate-resources/main/src/main/kotlin"
+

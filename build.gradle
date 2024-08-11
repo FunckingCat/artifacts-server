@@ -23,20 +23,6 @@ configurations {
 }
 
 repositories {
-    def nexusUsername = System.getProperty("gradle.wrapperUser")
-    def nexusPassword = System.getProperty("gradle.wrapperPassword")
-    def protectedRepo = { repoUrl ->
-        maven {
-            url repoUrl
-            credentials {
-                username nexusUsername
-                password nexusPassword
-            }
-        }
-    }
-
-    protectedRepo("https://nexus-ci.delta.sbrf.ru/repository/public/")
-    protectedRepo("https://nexus-ci.delta.sbrf.ru/repository/maven-lib-int/")
     mavenCentral()
 }
 
@@ -60,6 +46,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.11.0'
     implementation 'com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0'
     implementation("com.squareup.retrofit2:converter-scalars:2.11.0")
+
+    implementation 'org.apache.commons:commons-lang3:3.16.0'
 
     implementation "org.openapitools:openapi-generator-gradle-plugin:7.7.0"
 }

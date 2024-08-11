@@ -5,6 +5,7 @@ import org.openapitools.client.apis.MyCharactersApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 @Configuration
 class ApiConfig {
@@ -27,7 +28,7 @@ class ApiConfig {
 
         val retrofit = Retrofit.Builder()
                 .baseUrl("https://api.github.com")
-                .addConverterFactory()
+                .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build()
         return retrofit.create(MyCharactersApi::class.java)

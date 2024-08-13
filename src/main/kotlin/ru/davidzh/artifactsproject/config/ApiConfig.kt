@@ -3,6 +3,8 @@ package ru.davidzh.artifactsproject.config
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.openapitools.client.apis.CharactersApi
+import org.openapitools.client.apis.MapsApi
+import org.openapitools.client.apis.MonstersApi
 import org.openapitools.client.apis.MyCharactersApi
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -29,6 +31,16 @@ class ApiConfig(
         return buildApi(CharactersApi::class.java)
     }
 
+    @Bean
+    fun getMapsApi(): MapsApi {
+        return buildApi(MapsApi::class.java)
+    }
+
+    @Bean
+    fun getMonstersApi(): MonstersApi {
+        return buildApi(MonstersApi::class.java)
+    }
+
     private fun <T> buildApi(clazz: Class<T>): T {
 
         val interceptor : HttpLoggingInterceptor = HttpLoggingInterceptor()
@@ -41,7 +53,7 @@ class ApiConfig(
             .addInterceptor { chain ->
                 val original = chain.request()
                 val builder = original.newBuilder()
-                    .header("Authorization", apiKey)
+                    .header("Authorization", "Bearer $apiKey")
                 val request = builder.build()
                 chain.proceed(request)
             }

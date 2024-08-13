@@ -10,7 +10,7 @@ class ChannelConfig {
 
     @Bean
     fun getGameCharacterChannel(): Channel<GameCharacter> {
-        return Channel(Channel.UNLIMITED)
+        return Channel(6)
     }
 
 }

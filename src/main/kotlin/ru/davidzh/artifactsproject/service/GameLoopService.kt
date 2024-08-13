@@ -1,7 +1,12 @@
 package ru.davidzh.artifactsproject.service
 
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import lombok.AllArgsConstructor
@@ -28,10 +33,10 @@ class GameLoopService(
         private val log = LoggerFactory.getLogger(GameLoopService::class.java)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     @EventListener(ApplicationReadyEvent::class)
     fun gameLoop() = runBlocking {
-        launch {
+        launch(Dispatchers.Default) {
 
             val gameCharacter = Arrays.stream(CharacterRef.entries.toTypedArray())
                 .map { characterRef -> GameCharacter(name = characterRef.characterName, skin = characterRef.skin) }
@@ -42,11 +47,10 @@ class GameLoopService(
                 gameCharacterChannel.send(character)
             }
 
-            while (!gameCharacterChannel.isClosedForReceive) {
-                log.info("Receive element from channel")
-                val character = gameCharacterChannel.receive()
-                characterService.makeTurn(character)
-            }
+            gameCharacterChannel
+                .receiveAsFlow()
+                .flatMapMerge { flow { emit(characterService.makeTurn(it)) } }
+                .last()
 
         }
     }

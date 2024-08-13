@@ -3,7 +3,6 @@ package ru.davidzh.artifactsproject.service
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import org.openapitools.client.apis.CharactersApi
-import org.openapitools.client.apis.MyCharactersApi
 import org.openapitools.client.models.AddCharacterSchema
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -13,7 +12,8 @@ import ru.davidzh.artifactsproject.model.GameCharacter
 class CharacterService(
     private val gameCharacterChannel: Channel<GameCharacter>,
     private val charactersApi: CharactersApi,
-    private val myCharactersApi: MyCharactersApi
+    private val turnService: TurnService,
+
 ) {
 
     companion object {
@@ -24,9 +24,10 @@ class CharacterService(
         log.info("Character {} turn", character.name)
         createCharacterIfNotExists(character)
 
-        log.info("Character {} sleep before send to channel", character.name)
 
-        delay(1000)
+        val characterCoolDown = turnService.turn(character)
+        log.info("Character {} sleep {} before send to channel", character.name, characterCoolDown)
+        delay(characterCoolDown)
         gameCharacterChannel.send(character)
     }
 
